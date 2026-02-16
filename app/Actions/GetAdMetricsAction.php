@@ -3,6 +3,7 @@
 namespace App\Actions;
 
 use App\Services\MaxConnectService;
+use RuntimeException;
 
 class GetAdMetricsAction
 {
@@ -10,6 +11,22 @@ class GetAdMetricsAction
 
     public function handle(): array
     {
-        return [];
+        try {
+
+            $payload = $this->client->fetchAdMetrics();
+
+            dd($payload);
+
+            return [
+                'totals' => null,
+                'error' => null,
+            ];
+        } catch (RuntimeException $e) {
+
+            return [
+                'totals' => null,
+                'error' => $e->getMessage(),
+            ];
+        }
     }
 }
