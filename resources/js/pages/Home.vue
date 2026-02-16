@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { router } from '@inertiajs/vue3';
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { route } from 'ziggy-js';
 import AppLayout from '@/layouts/App.vue';
 import type { Totals } from '@/types/totals';
@@ -8,9 +8,21 @@ import type { Totals } from '@/types/totals';
 const props = defineProps<{
     totals: Totals | null;
     error: string | null;
+    campaignCount: number | null;
 }>();
 
+const isInitialLoad = ref(true);
 const isRefreshing = ref(false);
+
+onMounted(() => {
+    window.setTimeout(() => {
+        isInitialLoad.value = false;
+    }, 250);
+});
+
+const showSkeleton = computed(() => {
+    return isRefreshing.value || isInitialLoad.value || (!props.totals && !props.error);
+});
 
 const number = new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 });
 const fiat = new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
@@ -29,10 +41,6 @@ const cards = computed(() => {
         { key: 'users', label: 'Users' },
         { key: 'sessions', label: 'Sessions' },
     ] as const;
-});
-
-const showSkeleton = computed(() => {
-    return isRefreshing.value || (!props.totals && !props.error);
 });
 
 function refresh() {
@@ -62,15 +70,21 @@ function refresh() {
             </div>
             <div v-else class="flex-1" />
 
-            <button
-                type="button"
-                @click="refresh"
-                :disabled="isRefreshing"
-                class="inline-flex cursor-pointer items-center rounded-lg bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-                <span v-if="isRefreshing">Refreshing…</span>
-                <span v-else>Refresh</span>
-            </button>
+            <div class="flex items-center gap-3">
+                <div v-if="campaignCount" class="text-sm text-zinc-600">
+                    Total metrics for <span class="font-medium">{{ campaignCount }}</span> campaigns
+                </div>
+
+                <button
+                    type="button"
+                    @click="refresh"
+                    :disabled="isRefreshing"
+                    class="inline-flex cursor-pointer items-center rounded-lg bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                    <span v-if="isRefreshing">Refreshing…</span>
+                    <span v-else>Refresh</span>
+                </button>
+            </div>
         </div>
 
         <div v-if="showSkeleton" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

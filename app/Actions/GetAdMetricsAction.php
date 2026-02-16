@@ -25,7 +25,7 @@ class GetAdMetricsAction
                 Cache::forget(self::CACHE_KEY);
             }
 
-            $totals = Cache::remember(self::CACHE_KEY, self::CACHE_TTL_SECONDS, function () {
+            $results = Cache::remember(self::CACHE_KEY, self::CACHE_TTL_SECONDS, function () {
                 $payload = $this->client->fetchAdMetrics();
 
                 $campaigns = $payload['data']['campaigns'] ?? null;
@@ -34,12 +34,16 @@ class GetAdMetricsAction
                     throw new RuntimeException('Unexpected API response: missing campaigns.');
                 }
 
-                return $this->aggregate($campaigns);
+                return [
+                    'totals' => $this->aggregate($campaigns),
+                    'campaignCount' => count($campaigns),
+                ];
             });
 
             return [
-                'totals' => $totals,
+                'totals' => $results['totals'],
                 'error' => null,
+                'campaignCount' => $results['campaignCount'],
             ];
         } catch (RuntimeException $e) {
 
@@ -47,8 +51,9 @@ class GetAdMetricsAction
 
             if (is_array($cached)) {
                 return [
-                    'totals' => $cached,
+                    'totals' => $cached['totals'],
                     'error' => 'API is currently unavailable. Showing cached results.',
+                    'campaignCount' => $cached['campaignCount'],
                 ];
             }
 
