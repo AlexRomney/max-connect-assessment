@@ -51,7 +51,7 @@ class GetAdMetricsAction
 
         foreach ($campaigns as $campaign) {
             foreach (self::METRICS as $metric) {
-                $totals[$metric] += (int) $campaign[$metric] ?? 0;
+                $totals[$metric] += (int) ($campaign[$metric] ?? 0);
             }
         }
 
