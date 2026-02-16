@@ -7,6 +7,15 @@ use RuntimeException;
 
 class GetAdMetricsAction
 {
+    private const METRICS = [
+        'budget',
+        'impressions',
+        'clicks',
+        'conversions',
+        'users',
+        'sessions',
+    ];
+
     public function __construct(private readonly MaxConnectService $client) {}
 
     public function handle(): array
@@ -15,10 +24,16 @@ class GetAdMetricsAction
 
             $payload = $this->client->fetchAdMetrics();
 
-            dd($payload);
+            $campaigns = $payload['data']['campaigns'] ?? null;
+
+            if (!is_array($campaigns)) {
+                throw new RuntimeException('Unexpected API response: missing campaigns.');
+            }
+    
+            $totals = $this->aggregate($campaigns);
 
             return [
-                'totals' => null,
+                'totals' => $totals,
                 'error' => null,
             ];
         } catch (RuntimeException $e) {
@@ -28,5 +43,18 @@ class GetAdMetricsAction
                 'error' => $e->getMessage(),
             ];
         }
+    }
+
+    private function aggregate(array $campaigns): array
+    {
+        $totals = array_fill_keys(self::METRICS, 0);
+
+        foreach ($campaigns as $campaign) {
+            foreach (self::METRICS as $metric) {
+                $totals[$metric] += (int) $campaign[$metric] ?? 0;
+            }
+        }
+
+        return $totals;
     }
 }
