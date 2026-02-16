@@ -4,4 +4,4 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\MaxConnectController;
 
-Route::get('/', MaxConnectController::class)->name('home');
+Route::match(['get', 'post'], '/', MaxConnectController::class)->name('home');

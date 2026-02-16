@@ -4,39 +4,53 @@ namespace App\Actions;
 
 use App\Services\MaxConnectService;
 use RuntimeException;
+use Illuminate\Support\Facades\Cache;
 
 class GetAdMetricsAction
 {
     private const METRICS = [
-        'budget',
-        'impressions',
-        'clicks',
-        'conversions',
-        'users',
-        'sessions',
+        'budget', 'impressions', 'clicks', 'conversions', 'users', 'sessions',
     ];
+
+    private const CACHE_KEY = 'maxconnect:totals';
+    private const CACHE_TTL_SECONDS = 60;
 
     public function __construct(private readonly MaxConnectService $client) {}
 
-    public function handle(): array
+    public function handle(bool $refresh = false): array
     {
         try {
 
-            $payload = $this->client->fetchAdMetrics();
-
-            $campaigns = $payload['data']['campaigns'] ?? null;
-
-            if (!is_array($campaigns)) {
-                throw new RuntimeException('Unexpected API response: missing campaigns.');
+            if ($refresh) {
+                Cache::forget(self::CACHE_KEY);
             }
-    
-            $totals = $this->aggregate($campaigns);
+
+            $totals = Cache::remember(self::CACHE_KEY, self::CACHE_TTL_SECONDS, function () {
+                $payload = $this->client->fetchAdMetrics();
+
+                $campaigns = $payload['data']['campaigns'] ?? null;
+
+                if (!is_array($campaigns)) {
+                    throw new RuntimeException('Unexpected API response: missing campaigns.');
+                }
+
+                return $this->aggregate($campaigns);
+            });
 
             return [
                 'totals' => $totals,
                 'error' => null,
             ];
         } catch (RuntimeException $e) {
+
+            $cached = Cache::get(self::CACHE_KEY);
+
+            if (is_array($cached)) {
+                return [
+                    'totals' => $cached,
+                    'error' => 'API is currently unavailable. Showing cached results.',
+                ];
+            }
 
             return [
                 'totals' => null,

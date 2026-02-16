@@ -36,9 +36,9 @@ const showSkeleton = computed(() => {
 });
 
 function refresh() {
-    router.get(
+    router.post(
         route('home'),
-        { refresh: 1 },
+        {},
         {
             only: ['totals', 'error'],
             preserveScroll: true,
@@ -66,7 +66,7 @@ function refresh() {
                 type="button"
                 @click="refresh"
                 :disabled="isRefreshing"
-                class="inline-flex items-center rounded-lg bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50"
+                class="inline-flex cursor-pointer items-center rounded-lg bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50"
             >
                 <span v-if="isRefreshing">Refreshing…</span>
                 <span v-else>Refresh</span>
