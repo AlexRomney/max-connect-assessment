@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'max_connect' => [
+        'base_url' => env('MAX_CONNECT_BASE_URL'),
+        'api_token' => env('MAX_CONNECT_API_TOKEN'),
+    ],
+
 ];
