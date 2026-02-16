@@ -1,21 +1,27 @@
 <script setup lang="ts">
+import logo from '../../images/MaxConnectLogo.jpeg';
+
 defineProps<{
     title?: string;
 }>();
 </script>
 
 <template>
-    <div class="min-h-screen px-4 py-10">
-        <div class="mx-auto max-w-5xl">
-            <header v-if="title" class="mb-6">
-                <h1 class="text-2xl font-semibold text-zinc-900">
+    <Head :title="title" />
+
+    <div class="min-h-screen bg-[#FDFDFC] text-[#1b1b18]">
+        <header class="border-b bg-white">
+            <div class="mx-auto flex max-w-6xl items-center gap-3 px-6 py-4">
+                <img :src="logo" alt="Max Connect" class="h-8 w-auto" />
+
+                <h1 class="text-lg font-semibold">
                     {{ title }}
                 </h1>
-            </header>
+            </div>
+        </header>
 
-            <main class="rounded-xl bg-white p-6 shadow-sm ring-1 ring-zinc-200">
-                <slot />
-            </main>
-        </div>
+        <main class="mx-auto max-w-6xl px-6 py-6">
+            <slot />
+        </main>
     </div>
 </template>
